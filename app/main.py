@@ -1,173 +1,283 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
+# ✅ Necessary imports
 import os
 import pandas as pd
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores.faiss import FAISS
-from langchain.chains import create_retrieval_chain
-from langchain_core.prompts import MessagesPlaceholder
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain.chains.history_aware_retriever import create_history_aware_retriever
-from langchain.docstore.document import Document  # Correct import for Document class
-
 from dotenv import load_dotenv
-import os
+from typing import Literal
+from typing_extensions import TypedDict
+from langchain_core.documents import Document
+from langchain_core.messages import HumanMessage
+from langchain_core.tools import tool
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.vectorstores import FAISS
+from langgraph.graph import StateGraph, START, END, MessagesState
+from langgraph.types import Command
+from langgraph.prebuilt import create_react_agent
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 
+# ✅ Load environment variables
 load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise ValueError("OPENAI_API_KEY is not not found.")
-else:
-    print("OPENAI_API_KEY is loaded successfully.")
+if not OPENAI_API_KEY:
+    raise ValueError("❌ OPENAI_API_KEY is missing.")
+print("✅ OPENAI_API_KEY found.")
 
+# ✅ Load and preprocess the dataset
+print("\n📥 Loading and cleaning dataset...")
+df = pd.read_csv("symptoms_data.csv")
 
-# Define the FastAPI app
-app = FastAPI()
+# Clean column values
+df['symptom'] = df['symptom'].str.strip().str.lower()
+df['conditions'] = df['conditions'].apply(lambda x: [c.strip() for c in x.split(',')] if pd.notnull(x) else [])
+df['follow_up_questions'] = df['follow_up_questions'].apply(lambda x: [q.strip() for q in x.split(';')] if pd.notnull(x) else [])
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # List of allowed origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all HTTP methods
-    allow_headers=["*"],  # Allows all headers
+# print("📊 0
+
+# ✅ Convert rows to LangChain Documents
+documents = [
+    Document(
+        page_content=f"symptom: {row['symptom']}\nfollow_up: {'; '.join(row['follow_up_questions'])}",
+        metadata={
+            "symptom": row['symptom'],
+            "conditions": row['conditions'],
+            "follow_up_questions": row['follow_up_questions']
+        }
+    )
+    for _, row in df.iterrows()
+]
+
+# ✅ Initialize OpenAI Embeddings
+embedding_model = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+
+# ✅ Create FAISS vectorstore
+vectorstore = FAISS.from_documents(documents, embedding_model)
+vectorstore.save_local("faiss_index")
+retriever = vectorstore.as_retriever(search_type="similarity", k=3)
+
+# ✅ Initialize Chat LLM
+llm = ChatOpenAI(model="gpt-4o", temperature=0.2, openai_api_key=OPENAI_API_KEY)
+system_prompt = (
+    "Use the given context to answer the question. "
+    "Context: {context}"
 )
+prompt = ChatPromptTemplate.from_messages(
+    [
+        # ("system", system_prompt),
+        ("human", "Given the following context:\n\n{context}\n\nAnswer: {input}")
+    ]
+)
+question_answer_chain = create_stuff_documents_chain(llm, prompt)
+chain = create_retrieval_chain(retriever, question_answer_chain)
 
-# Define the request model
-class ChatRequest(BaseModel):
-    question: str
+res = chain.invoke({"input": "I feel fatigued."})
+# print(res)
+@tool
+def retrieve_diagnosis(symptom: str):
+    """Return relevant diagnostic information based on symptom."""
+    results = retriever.invoke(symptom)
+    responses = "\n".join([doc.page_content for doc in results])
+    return f"Follow-up questions for diagnosis:\n{responses}"
 
-# Perform RAG
-# Information retrieval from the CSV file using the specified columns
-def extract_csv_info(file_path):
-    dataset = pd.read_csv(file_path)
-    
-    # Concatenate relevant columns into a single text field for each row
-    dataset['combined_text'] = (
-        dataset['symptom'].fillna('') + ' ' +
-        dataset['conditions'].fillna('') + ' ' +
-        dataset['follow_up_questions'].fillna('')
+@tool
+def give_recommendation(context: str) -> str:
+    """Use the LLM to provide a medical recommendation based on the patient's symptoms."""
+    prompt = (
+        "Given the patient's symptom information below, provide a 2 line short, clear medical recommendation.\n\n"
+        f"Symptom Context:\n{context}\n\n"
+        "Recommendation:"
     )
-    
-    # Convert each row into a Document object
-    documents = [Document(page_content=text) for text in dataset['combined_text'].tolist()]
-    
-    split_docs = RecursiveCharacterTextSplitter(
-        chunk_size=300,
-        chunk_overlap=20
+    response = llm.invoke(prompt)
+    return response.content.strip()
+
+@tool
+def explain_reasoning(context: str) -> str:
+    """Use the LLM to explain the diagnostic reasoning based on the context."""
+    prompt = (
+        "Given the symptom context below, explain the likely diagnostic reasoning in simple terms.\n\n"
+        f"Symptom Context:\n{context}\n\n"
+        "Diagnostic Reasoning:"
     )
-    splitDocs = split_docs.split_documents(documents)
-    return splitDocs
+    response = llm.invoke(prompt)
+    return response.content.strip()
 
-# Create the vector store from documents
-def create_vector_store(documents):
-    embedding = OpenAIEmbeddings()
-    vectorStore = FAISS.from_documents(documents, embedding=embedding)
-    return vectorStore
+# ✅ Workflow members
+members = ["diagnostic", "recommendation", "explanation"]
 
-def create_recurring_chain(vectorStore):
-    model = ChatOpenAI(
-        model="gpt-4o",
-        temperature=0.1
-    )
-    prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            """
-        You are a collaborative AI health assistant composed of three agents:
+class Router(TypedDict):
+    next: Literal["diagnostic", "recommendation", "explanation", "FINISH"]
 
-        1. **Diagnostic Agent** - Asks follow-up questions based on user symptoms.
-        2. **Recommendation Agent** - Provides advice based on symptom patterns and likely conditions.
-        3. **Explanation Agent** - Explains the logic behind any diagnosis or recommendation in a simple and empathetic way.
+class State(MessagesState):
+    next: str
 
-        Your data includes:
-        - "symptom": user's complaint
-        - "conditions": possible diagnoses
-        - "follow_up_questions": dynamic questions to narrow down conditions
+#✅ System instruction to the router LLM
+system_prompt = f"""
+You are a controller managing the workflow: {members}.
+Start with 'diagnostic', then 'recommendation', and finish with 'explanation'.
+Once complete, choose FINISH.
+"""
 
-        Instructions:
-        - When a user provides a symptom, start with a question (Diagnostic Agent).
-        - Ask follow-up questions until enough information is gathered.
-        - Then respond with advice (Recommendation Agent).
-        - Follow that with an explanation of the reasoning (Explanation Agent).
-        - Stay in character and be concise, caring, and medically responsible.
+def supervisor_node(state: State) -> Command[Literal["diagnostic", "recommendation", "explanation", "__end__"]]:
+    messages = [{"role": "system", "content": system_prompt}] + state["messages"]
+    response = llm.with_structured_output(Router).invoke(messages)
+    next_step = response["next"]
+    return Command(goto=END if next_step == "FINISH" else next_step, update={"next": next_step})
 
-        Relevant data:
-        {context}
-            """
-        ),
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("user", "{input}")
-    ])
+def diagnostic_node(state: State) -> Command[Literal["supervisor"]]:
+    agent = create_react_agent(llm, tools=[retrieve_diagnosis], prompt="You are a diagnostician.")
+    result = agent.invoke(state)
+    return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="diagnostic")]}, goto="supervisor")
 
-    # 🌐 LLM chain that incorporates documents into the multi-agent prompt
-    chain = create_stuff_documents_chain(
-        llm=model,
-        prompt=prompt
-    )
+def recommendation_node(state: State) -> Command[Literal["supervisor"]]:
+    agent = create_react_agent(llm, tools=[give_recommendation], prompt="You are a medical advisor.")
+    result = agent.invoke(state)
+    return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="recommendation")]}, goto="supervisor")
 
-    # 🔍 Retriever setup
-    retriever = vectorStore.as_retriever(search_kwargs={"k": 3})
+def explanation_node(state: State) -> Command[Literal["supervisor"]]:
+    agent = create_react_agent(llm, tools=[explain_reasoning], prompt="You explain reasoning behind diagnoses.")
+    result = agent.invoke(state)
+    return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="explanation")]}, goto="supervisor")
 
-    # 🧠 Retriever prompt (for history awareness)
-    retriever_prompt = ChatPromptTemplate.from_messages([
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("user", "{input}")
-    ])
+# ✅ Create and compile the graph
+graph = StateGraph(State)
+graph.add_node("supervisor", supervisor_node)
+graph.add_node("diagnostic", diagnostic_node)
+graph.add_node("recommendation", recommendation_node)
+graph.add_node("explanation", explanation_node)
+graph.set_entry_point("supervisor")
+graph.add_edge(START, "supervisor")
 
-    #  Make the retriever aware of chat history
-    history_aware_retriever = create_history_aware_retriever(
-        llm=model,
-        retriever=retriever,
-        prompt=retriever_prompt
-    )
+app = graph.compile()
 
-    # 🔗 Final chain: combines history-aware retriever with the agent prompt
-    retrieval_chain = create_retrieval_chain(
-        history_aware_retriever,
-        chain
-    )
+# ✅ Optional: Display the graph if in Jupyter
+from IPython.display import Image, display
+display(Image(app.get_graph().draw_mermaid_png()))
 
-    return retrieval_chain
+# ✅ Run the full diagnostic agent pipeline
+print("\n🚀 Running agent with input: 'I feel fatigued.'\n")
+for step in app.stream({"messages": [("user", "I feel fatigued.")]}, subgraphs=True):
+    print(step)
+    print("----")
+
+# ✅ Final result
+result = app.invoke({"messages": [("user", "I feel fatigued.")]})
+print("\n🎯 Final output:\n", result)
 
 
-# Initialize the documents and chain globally
-csv_file_path = "symptoms_data.csv"
-documents = extract_csv_info(csv_file_path)
-vectorStore = create_vector_store(documents)
-chain = create_recurring_chain(vectorStore)
+# if __name__ == "__main__":
+#     # 🔍 Test the tool with a sample symptom
+#     test_symptom = "ensure adequate rest since you are fatigued"
+#     print("\n🧪 Testing retrieve_diagnosis tool with:", test_symptom)
+#     output = explain_reasoning.invoke({"context": test_symptom})
+#     print("\n📋 Tool Output:\n", output)
 
-# Initialize chat history
-chat_history = []
 
-@app.post("/ask")
-async def chat(request: ChatRequest):
-    global chat_history
-    question = request.question
-    
-    # Process the chat and return the response
-    try:
-        response = chain.invoke({
-            "chat_history": chat_history,
-            "input": question, 
-        })
-        answer = response["answer"]
-        
-        # Update chat history
-        chat_history.append(HumanMessage(content=question))
-        chat_history.append(AIMessage(content=answer))
-        
-        return {"response": answer}
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# @tool
+# def explain_reasoning(context: str):
+#     """Explain the diagnostic reasoning."""
+#     return (
+#         "This reasoning is based on symptom similarity found in medical data. "
+#         "Symptoms like headache and nausea often match conditions like migraine."
+#     )
+
+# # ✅ Workflow members
+# members = ["diagnostic", "recommendation", "explanation"]
+
+# class Router(TypedDict):
+#     next: Literal["diagnostic", "recommendation", "explanation", "FINISH"]
+
+# class State(MessagesState):
+#     next: str
+
+# # ✅ System instruction to the router LLM
+# system_prompt = f"""
+# You are a controller managing the workflow: {members}.
+# Start with 'diagnostic', then 'recommendation', and finish with 'explanation'.
+# Once complete, choose FINISH.
+# """
+
+# # ✅ Supervisor node to control flow
+# # def supervisor_node(state: State) -> Command:
+# #     messages = [{"role": "system", "content": system_prompt}] + state["messages"]
+# #     response = llm.with_structured_output(Router).invoke(messages)
+# #     next_step = response["next"]
+# #     return Command(goto=END if next_step == "FINISH" else next_step, update={"next": next_step})
+# from langgraph.graph import END
+
+# def supervisor_node(state: State) -> Command:
+#     steps_done = state.get("steps_done", [])
+
+#     for step in ["diagnostic", "recommendation", "explanation"]:
+#         if step not in steps_done:
+#             steps_done.append(step)
+#             return Command(goto=step, update={"next": step, "steps_done": steps_done})
+
+#     return Command(goto=END, update={"next": "finish", "steps_done": steps_done})
+
+
+
+# # ✅ Diagnostic node
+# # def diagnostic_node(state: State) -> Command:
+# #     agent = create_react_agent(llm, tools=[retrieve_diagnosis], prompt="You are a diagnostician.")
+# #     result = agent.invoke(state)
+# #     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="diagnostic")]}, goto="supervisor")
+
+# def diagnostic_node(state: State) -> Command:
+#     user_input = state["messages"][-1].content
+
+#     prompt = f"""
+# You are a health diagnostic assistant.
+# Based on this input from the user: "{user_input}", identify the type of health problem (if any),
+# such as: headache, nausea, fatigue, etc.
+
+# Respond concisely with a sentence explaining your diagnosis.
+# """
+
+#     response = llm.invoke([HumanMessage(content=prompt)])
+#     diagnosis = response.content.strip()
+
+#     return Command(
+#         update={"diagnosis": diagnosis},
+#         goto="supervisor"
+#     )
+
+
+
+# # ✅ Recommendation node
+# def recommendation_node(state: State) -> Command:
+#     agent = create_react_agent(llm, tools=[give_recommendation], prompt="You are a medical advisor.")
+#     result = agent.invoke(state)
+#     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="recommendation")]}, goto="supervisor")
+
+# # ✅ Explanation node
+# def explanation_node(state: State) -> Command:
+#     agent = create_react_agent(llm, tools=[explain_reasoning], prompt="You explain reasoning behind diagnoses.")
+#     result = agent.invoke(state)
+#     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="explanation")]}, goto="supervisor")
+
+# # ✅ Create and compile the graph
+# graph = StateGraph(State)
+# graph.add_node("supervisor", supervisor_node)
+# graph.add_node("diagnostic", diagnostic_node)
+# graph.add_node("recommendation", recommendation_node)
+# graph.add_node("explanation", explanation_node)
+# graph.set_entry_point("supervisor")
+# graph.add_edge(START, "supervisor")
+
+# app = graph.compile()
+
+# # ✅ Optional: Display the graph if in Jupyter
+# # from IPython.display import Image, display
+# # display(Image(app.get_graph().draw_mermaid_png()))
+
+# # ✅ Run the full diagnostic agent pipeline
+# print("\n🚀 Running agent with input: 'I have a headache and nausea.'\n")
+# for step in app.stream({"messages": [("user", "I have a headache and nausea.")]}, subgraphs=True):
+#     print(step)
+#     print("----")
+
+# # ✅ Final result
+# result = app.invoke({"messages": [("user", "I have a headache and nausea.")]})
+# print("\n🎯 Final output:\n", result)

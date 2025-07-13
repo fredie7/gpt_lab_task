@@ -16,7 +16,6 @@ from langgraph.prebuilt import create_react_agent
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import RetrievalQA
-import streamlit as st
 
 
 from fastapi import FastAPI, Request
@@ -82,6 +81,15 @@ llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY)
 chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
 # print("CHAIN===>>", chain.invoke("fatigue"))
 
+
+# Tools
+# @tool
+# def retrieve_diagnosis(symptom: str):
+#     """Return relevant diagnostic information based on symptom."""
+#     results = chain.invoke(symptom)
+#     responses = "\n".join([doc.page_content for doc in results])
+#     return f"Follow-up questions for diagnosis:\n{responses}"
+
 from langchain_core.tools import tool
 
 @tool
@@ -100,6 +108,17 @@ def retrieve_diagnosis(symptom: str) -> str:
     else:
         return f"I have no knowledge about the symptom: '{symptom}'. Please try a closely related symptom to help us discuss how you feel."
 
+
+# @tool
+# def give_recommendation(context: str) -> str:
+#     """Use the LLM to provide a medical recommendation based on the patient's symptoms."""
+#     prompt = (
+#         "Given the patient's symptom information below, provide a 2 line short, clear medical recommendation.\n\n"
+#         f"Symptom Context:\n{context}\n\n"
+#         "Recommendation:"
+#     )
+#     response = llm.invoke(prompt)
+#     return response.content.strip()
 
 @tool
 def give_recommendation(context: str) -> str:
@@ -163,6 +182,20 @@ system_prompt = f"""
     "choose explanation when the query is about understanding the diagnosis. Your output must be exactly one of these words: "
     "'diagnostic', 'recommendation', 'explanation', or 'FINISH'."
 """
+# system_prompt = f"""
+#     "You are the Supervisor Agent responsible for managing the conversation among these worker agents: {members}."
+#     "diagnostic, recommendation, explanation." 
+#     Your job is to decide the *next action based on the full conversation history and current user message.
+
+#     Choose one of the following next steps:
+#     - "diagnostic": When the user introduces new symptoms or needs follow-up diagnostic questions.
+#     - "recommendation": When the user has answered prior questions and is seeking advice or treatment suggestions.
+#     - "explanation": When the user is asking for explanations or clarifications.
+#     - "FINISH": When all necessary info has been collected and recommendations are given.
+
+#     If the user mentions any response to prior diagnostic questions, or confirms previous symptoms, prefer 'recommendation' over 'diagnostic'.
+
+   
 # """
 
 def supervisor_node(state: State) -> Command[Literal["diagnostic", "recommendation", "explanation", "__end__"]]:
@@ -172,37 +205,17 @@ def supervisor_node(state: State) -> Command[Literal["diagnostic", "recommendati
     print("Next step decided by supervisor:", next_step)
     return Command(goto=END if next_step == "FINISH" else next_step, update={"next": next_step})
 
-# def diagnostic_node(state: State) -> Command[Literal["supervisor"]]:
-#     result = diagnostic_agent.invoke(state)
-#     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="diagnostic")]}, goto="supervisor")
-
-# def recommendation_node(state: State) -> Command[Literal["supervisor"]]:
-#     result = recommendation_agent.invoke(state)
-#     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="recommendation")]}, goto="supervisor")
-
-# def explanation_node(state: State) -> Command[Literal["supervisor"]]:
-#     result = explanation_agent.invoke(state)
-#     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="explanation")]}, goto="supervisor")
-
 def diagnostic_node(state: State) -> Command[Literal["supervisor"]]:
     result = diagnostic_agent.invoke(state)
-    content = result['messages'][-1].content
-    # Add agent label
-    labeled_content = f"🩺 Diagnostic Agent:\n{content}"
-    return Command(update={"messages": [HumanMessage(content=labeled_content, name="diagnostic")]}, goto="supervisor")
+    return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="diagnostic")]}, goto="supervisor")
 
 def recommendation_node(state: State) -> Command[Literal["supervisor"]]:
     result = recommendation_agent.invoke(state)
-    content = result['messages'][-1].content
-    labeled_content = f"💡 Recommendation Agent:\n{content}"
-    return Command(update={"messages": [HumanMessage(content=labeled_content, name="recommendation")]}, goto="supervisor")
+    return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="recommendation")]}, goto="supervisor")
 
 def explanation_node(state: State) -> Command[Literal["supervisor"]]:
     result = explanation_agent.invoke(state)
-    content = result['messages'][-1].content
-    labeled_content = f"📖 Explanation Agent:\n{content}"
-    return Command(update={"messages": [HumanMessage(content=labeled_content, name="explanation")]}, goto="supervisor")
-
+    return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="explanation")]}, goto="supervisor")
 
 # Build and compile graph
 graph = StateGraph(State)
@@ -216,42 +229,18 @@ result_graph = graph.compile()
 
 # print("Graph compiled successfully.")
 
-# if __name__ == "__main__":
-#     test_result = result_graph.invoke({"messages": [("user", "I feel fatigued.")]})
-#     print("\nFinal output:\n", test_result['messages'][-1].content)
+if __name__ == "__main__":
+    test_result = result_graph.invoke({"messages": [("user", "I feel fatigued.")]})
+    print("\nFinal output:\n", test_result['messages'][-1].content)
 
-st.title("Symptom Diagnostic Chatbot")
+# Endpoint for symptom message
+# @app.post("/ask")
+# async def diagnose(input_data: SymptomInput):
+#     user_message = input_data.message
+#     state_input = {"messages": [("user", user_message)]}
+#     result = result_graph.invoke(state_input)
+#     answer = result["messages"][-1].content
+#     return {"response": answer}
 
-if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "user", "content": ""}]
+# Test run (can be removed later)
 
-def submit_query():
-    user_input = st.session_state.user_input.strip()
-    if user_input:
-        # Append user message
-        st.session_state.messages.append({"role": "user", "content": user_input})
-
-        # Prepare messages for graph input format
-        messages_for_graph = [(msg["role"], msg["content"]) for msg in st.session_state.messages if msg["content"]]
-
-        # Invoke the LangGraph workflow
-        result = result_graph.invoke({"messages": messages_for_graph})
-
-        # Extract last message content from the workflow output
-        last_message = result['messages'][-1].content
-
-        # Append assistant reply
-        st.session_state.messages.append({"role": "assistant", "content": last_message})
-
-        # Clear input box
-        st.session_state.user_input = ""
-
-# Input box and submit button
-st.text_input("Describe your symptom or ask a question:", key="user_input", on_change=submit_query)
-
-# Display conversation history
-for msg in st.session_state.messages:
-    if msg["role"] == "user":
-        st.markdown(f"**You:** {msg['content']}")
-    else:
-        st.markdown(f"**Bot:** {msg['content']}")

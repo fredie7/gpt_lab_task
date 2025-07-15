@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 from dotenv import load_dotenv
-from typing import Literal
+from typing import Literal, Dict,TypedDict, Sequence, Annotated
 from typing_extensions import TypedDict
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage
@@ -17,6 +17,14 @@ from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import RetrievalQA
 import streamlit as st
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.tools import tool
+from langgraph.graph import StateGraph,START,END,MessagesState
+from langchain_core.messages import HumanMessage,SystemMessage,AIMessage,ToolMessage,BaseMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph.message import add_messages
+from IPython.display import display, Image
+from pprint import pprint
 
 
 from fastapi import FastAPI, Request
@@ -41,8 +49,11 @@ app.add_middleware(
 )
 
 # Input schema
+
 class SymptomInput(BaseModel):
     message: str
+    history: list[dict] = []  # Expecting [{"role": "user"/"assistant", "content": "..."}]
+
 
 # Load and preprocess dataset once
 def load_documents():
@@ -72,21 +83,22 @@ def load_documents():
 # Load documents
 documents = load_documents()
 
-# Embeddings
-embedding_model = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=OPENAI_API_KEY)
 
-documents = load_documents()
-embedding_model = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
-vectorstore = FAISS.from_documents(documents, embedding_model)
-llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY)
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000,
+    chunk_overlap=200
+)
+documents_split = text_splitter.split_documents( documents)
+vectorstore = FAISS.from_documents(documents, embeddings)
+llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY,temperature=0.0)
 chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
 # print("CHAIN===>>", chain.invoke("fatigue"))
 
-from langchain_core.tools import tool
 
 @tool
-def retrieve_diagnosis(symptom: str) -> str:
-    """Return follow-up diagnostic questions based on the symptom."""
+def provide_diagnosis(symptom: str) -> str:
+    """Return follow-up diagnostic questions based on the symptom to help another medical assistant make recommendations."""
     docs = vectorstore.similarity_search(symptom, k=1)  # retrieve top 1 match
     follow_up_questions = []
 
@@ -96,162 +108,145 @@ def retrieve_diagnosis(symptom: str) -> str:
             follow_up_questions.extend(questions)
 
     if follow_up_questions:
-        return "Follow-up questions for diagnosis:\n- " + "\n- ".join(set(follow_up_questions))
+        return "I have some questions to help your diagnosis:\n- " + "\n- ".join(set(follow_up_questions))
     else:
         return f"I have no knowledge about the symptom: '{symptom}'. Please try a closely related symptom to help us discuss how you feel."
 
-
 @tool
-def give_recommendation(context: str) -> str:
+def provide_recommendation(context: str) -> str:
     """
-    Provide a short and clear medical recommendation based on the patient's symptoms.
-    The response should be friendly, readable, and helpful.
+    Generate a short, friendly, and clear medical recommendation based strictly on the patient's symptom input.
+    The output must include the symptom keyword and avoid telling the patient to visit a doctor.
+    The recommendation should be grounded in the dataset and limited to no more than three sentences.
     """
     prompt = (
-        "You are a health assistant. Based on the symptoms described below, give a helpful, short medical recommendation "
-        "in *no more than two sentences*. Make it concise and user-friendly.\n\n"
+        "You are a helpful medical assistant using only the provided dataset to make recommendations.\n"
+        "Based on the symptom described below, generate a short, user-friendly recommendation.\n"
+        "Do NOT suggest visiting a doctor. Do NOT invent medical facts.\n"
+        f"Make sure to include the keyword: '{context.strip()}' so another assistant can explain your reasoning.\n"
+        "Keep your answer to a maximum of three sentences.\n\n"
         f"Symptom: {context.strip()}\n\n"
-        "Your Recommendation:"
+        "Recommendation:"
     )
-
-    try:
-        response = llm.invoke(prompt)
-        recommendation = response.content.strip()
-
-        # Optionally format or truncate if needed
-        if len(recommendation.split(".")) > 3:
-            # truncate to first 2 sentences if too long
-            sentences = recommendation.split(".")
-            recommendation = ". ".join(sentences[:2]).strip() + "."
-
-        return f"🩺 Recommendation:\n{recommendation}"
-    except Exception as e:
-        return "⚠️ Sorry, I couldn't generate a recommendation at this moment. Please try again later."
-
-
-@tool
-def explain_reasoning(context: str) -> str:
-    """Use the LLM to explain the diagnostic reasoning based on the context."""
-    prompt = (
-        "Given the symptom context below, explain the likely diagnostic reasoning in simple terms.\n\n"
-        f"Symptom Context:\n{context}\n\n"
-        "Diagnostic Reasoning:"
-    )
-    response = llm.invoke(prompt)
+    response = chain.invoke(prompt)
     return response.content.strip()
 
-# Precreate agents
-diagnostic_agent = create_react_agent(llm, tools=[retrieve_diagnosis], prompt="You are a diagnostician.")
-recommendation_agent = create_react_agent(llm, tools=[give_recommendation], prompt="You are a medical advisor.")
-explanation_agent = create_react_agent(llm, tools=[explain_reasoning], prompt="You explain reasoning behind diagnoses.")
+@tool
+def provide_explanation(context: str) -> str:
+    """
+    Explain in simple terms the reasoning behind a recommendation previously given,
+    using only knowledge inferred from the dataset.
+    The output should be user-friendly, factually grounded, and avoid speculation.
+    """
+    prompt = (
+        "You are a healthcare assistant who explains recommendations in simple, clear terms.\n"
+        "Given the context of a previous recommendation, explain the most likely reasons behind it.\n"
+        "Use only knowledge from the dataset and do not speculate or invent causes.\n\n"
+        f"Recommendation Context:\n{context.strip()}\n\n"
+        "Explanation:"
+    )
+    response = chain.invoke(prompt)
+    return response.content.strip()
 
-# LangGraph workflow
-members = ["diagnostic", "recommendation", "explanation"]
-class Router(TypedDict):
-    next: Literal["diagnostic", "recommendation", "explanation", "FINISH"]
+tools = [provide_diagnosis,provide_recommendation,provide_explanation]
 
-class State(MessagesState):
-    next: str
+llm = llm.bind_tools(tools)
 
-system_prompt = f"""
-    "You are the Supervisor Agent responsible for managing the conversation among these worker agents: {members}."
-    "diagnostic, recommendation, explanation. When a user query arrives, analyze the full conversation context—including "
-    "any responses already provided by a worker—and decide which worker should handle the next task. "
-    "If the user's question has already been addressed appropriately by any worker, respond with FINISH so that the same "
-    "worker is not triggered again. Otherwise, if the query involves diagnostic, recommendation, explanation, "
-    "choose diagnostic when the query is about symptoms; choose recommendation when the query is about treatment options; "
-    "choose explanation when the query is about understanding the diagnosis. Your output must be exactly one of these words: "
-    "'diagnostic', 'recommendation', 'explanation', or 'FINISH'."
-"""
-# """
+class MedicalAgentState(TypedDict):
+  messages: Annotated[Sequence[BaseMessage],add_messages]
 
-def supervisor_node(state: State) -> Command[Literal["diagnostic", "recommendation", "explanation", "__end__"]]:
-    messages = [{"role": "system", "content": system_prompt}] + state["messages"]
-    response = llm.with_structured_output(Router).invoke(messages)
-    next_step = response["next"]
-    print("Next step decided by supervisor:", next_step)
-    return Command(goto=END if next_step == "FINISH" else next_step, update={"next": next_step})
+def medical_agent(state: MedicalAgentState) -> MedicalAgentState:
+    system_prompt = SystemMessage(
+        content=f"""
+            You are a medical assistant responsible for managing the conversation among these worker agents: {tools}.
+            - Provide diagnostic questions to examine the patient
+            - Relay patient's diagnostic answers with the recommender agent to provide recommendations
+            - Relay recommendations with the explainer agent to explain the reasons for the recommendation.
+            - Ask the user if they need an explanations for the recommendations after recommendation is done.
+            - For each response, start with the corresponding agent or tool responsible for instance (Diagnostic Agent):, (Recommendation Agent):, (Explanation Agent):.
+        """
+    )
 
-# def diagnostic_node(state: State) -> Command[Literal["supervisor"]]:
-#     result = diagnostic_agent.invoke(state)
-#     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="diagnostic")]}, goto="supervisor")
+    print("🤖 [Agent] Invoking medical assistant with current message state...")
+    response = llm.invoke([system_prompt] + state['messages'])
 
-# def recommendation_node(state: State) -> Command[Literal["supervisor"]]:
-#     result = recommendation_agent.invoke(state)
-#     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="recommendation")]}, goto="supervisor")
+    # Track Tools
+    print("[Agent] Tool calls detected:")
+    for i, tool_call in enumerate(response.tool_calls):
+        print(f" Tool #{i + 1}: {tool_call.get('name', 'UnknownTool')}")
+        print(f" Args: {tool_call.get('args', {})}")
+   
 
-# def explanation_node(state: State) -> Command[Literal["supervisor"]]:
-#     result = explanation_agent.invoke(state)
-#     return Command(update={"messages": [HumanMessage(content=result['messages'][-1].content, name="explanation")]}, goto="supervisor")
+    return {"messages": [response]}
 
-def diagnostic_node(state: State) -> Command[Literal["supervisor"]]:
-    result = diagnostic_agent.invoke(state)
-    content = result['messages'][-1].content
-    # Add agent label
-    labeled_content = f"🩺 Diagnostic Agent:\n{content}"
-    return Command(update={"messages": [HumanMessage(content=labeled_content, name="diagnostic")]}, goto="supervisor")
-
-def recommendation_node(state: State) -> Command[Literal["supervisor"]]:
-    result = recommendation_agent.invoke(state)
-    content = result['messages'][-1].content
-    labeled_content = f"💡 Recommendation Agent:\n{content}"
-    return Command(update={"messages": [HumanMessage(content=labeled_content, name="recommendation")]}, goto="supervisor")
-
-def explanation_node(state: State) -> Command[Literal["supervisor"]]:
-    result = explanation_agent.invoke(state)
-    content = result['messages'][-1].content
-    labeled_content = f"📖 Explanation Agent:\n{content}"
-    return Command(update={"messages": [HumanMessage(content=labeled_content, name="explanation")]}, goto="supervisor")
-
-
-# Build and compile graph
-graph = StateGraph(State)
-graph.add_node("supervisor", supervisor_node)
-graph.add_node("diagnostic", diagnostic_node)
-graph.add_node("recommendation", recommendation_node)
-graph.add_node("explanation", explanation_node)
-graph.set_entry_point("supervisor")
-graph.add_edge(START, "supervisor")
-result_graph = graph.compile()
-
-# print("Graph compiled successfully.")
-
-# if __name__ == "__main__":
-#     test_result = result_graph.invoke({"messages": [("user", "I feel fatigued.")]})
-#     print("\nFinal output:\n", test_result['messages'][-1].content)
-
-st.title("Symptom Diagnostic Chatbot")
-
-if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "user", "content": ""}]
-
-def submit_query():
-    user_input = st.session_state.user_input.strip()
-    if user_input:
-        # Append user message
-        st.session_state.messages.append({"role": "user", "content": user_input})
-
-        # Prepare messages for graph input format
-        messages_for_graph = [(msg["role"], msg["content"]) for msg in st.session_state.messages if msg["content"]]
-
-        # Invoke the LangGraph workflow
-        result = result_graph.invoke({"messages": messages_for_graph})
-
-        # Extract last message content from the workflow output
-        last_message = result['messages'][-1].content
-
-        # Append assistant reply
-        st.session_state.messages.append({"role": "assistant", "content": last_message})
-
-        # Clear input box
-        st.session_state.user_input = ""
-
-# Input box and submit button
-st.text_input("Describe your symptom or ask a question:", key="user_input", on_change=submit_query)
-
-# Display conversation history
-for msg in st.session_state.messages:
-    if msg["role"] == "user":
-        st.markdown(f"**You:** {msg['content']}")
+def should_continue(state: MedicalAgentState): 
+    messages = state["messages"]
+    last_message = messages[-1]
+    if not last_message.tool_calls: 
+        return "end"
     else:
-        st.markdown(f"**Bot:** {msg['content']}")
+        return "continue"
+
+graph = StateGraph(MedicalAgentState)
+graph.add_node("medical_agent",medical_agent)
+
+tool_node = ToolNode(tools=tools)
+
+graph.add_node("tools",tool_node)
+
+graph.set_entry_point("medical_agent")
+
+graph.add_conditional_edges(
+    "medical_agent",
+    should_continue,
+    {
+        "continue": "tools",
+        "end": END,
+    },
+)
+graph.add_edge("tools", "medical_agent")
+app = graph.compile()
+
+# Display the reAct graph architecture
+display(Image(app.get_graph().draw_mermaid_png()))
+
+# Run the app
+# Conversation memory (holds the full dialogue history)
+message_history: list[BaseMessage] = []
+
+print("🤖 Welcome to your medical assistant!")
+print("💬 Type your symptom or concern (e.g., 'sore throat'), or type 'exit' to quit.\n")
+
+while True:
+    user_input = input("👤 You: ").strip()
+
+    if user_input.lower() == "exit":
+        print("👋 Goodbye! Stay healthy.")
+        break
+
+    # Add the user's message to the memory
+    message_history.append(HumanMessage(content=user_input))
+
+    # Prepare state with full history
+    state = {
+        "messages": message_history
+    }
+
+    while True:
+        # Invoke the app (agent + toolchain)
+        state = app.invoke(state)
+
+        # Retrieve and store the assistant's response
+        last_message = state["messages"][-1]
+        message_history.append(last_message)
+
+        # Display the assistant response
+        print("\nAssistant:")
+        pprint(last_message.content)
+
+        # End inner loop if there are no further tool calls
+        if not getattr(last_message, "tool_calls", None):
+            print("\nYou can ask another question or type 'exit' to quit.")
+            break
+
+

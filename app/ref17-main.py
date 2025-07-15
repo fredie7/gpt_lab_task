@@ -164,8 +164,6 @@ def medical_agent(state: MedicalAgentState) -> MedicalAgentState:
             - Relay recommendations with the explainer agent to explain the reasons for the recommendation.
             - Ask the user if they need an explanations for the recommendations after recommendation is done.
             - For each response, start with the corresponding agent or tool responsible for instance (Diagnostic Agent):, (Recommendation Agent):, (Explanation Agent):.
-            - Though you would discover more than one question from the diagnostic agent, ask them one at a time rather than asking them all at once.Make sure to ask all the questions and take note of the responses to provide enough information for the recommender agent and before activating it.
-            - After providing a recommendation, ask the user if they need an explanation for the recommendation.
         """
     )
 

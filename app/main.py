@@ -1,6 +1,9 @@
 # Necessary imports
 import os
 import pandas as pd
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from dotenv import load_dotenv
 from typing import Literal, Dict,TypedDict, Sequence, Annotated
 from typing_extensions import TypedDict
@@ -42,7 +45,7 @@ print("OPENAI_API_KEY found.")
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Update in production
+    allow_origins=["*","http://localhost:3000/"],  # Update in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -159,6 +162,8 @@ def medical_agent(state: MedicalAgentState) -> MedicalAgentState:
     system_prompt = SystemMessage(
         content=f"""
             You are a medical assistant responsible for managing the conversation among these worker agents: {tools}.
+            - First ask 'Before we proceed, could you please provide your name, age, and gender? This is to help me get to know you'.
+            -Include the patient's name in the conversation to make it personalized, but not on every response
             - Provide diagnostic questions to examine the patient
             - Relay patient's diagnostic answers with the recommender agent to provide recommendations
             - Relay recommendations with the explainer agent to explain the reasons for the recommendation.
@@ -207,48 +212,22 @@ graph.add_conditional_edges(
     },
 )
 graph.add_edge("tools", "medical_agent")
-app = graph.compile()
+agent_app = graph.compile()
 
-# Display the reAct graph architecture
-display(Image(app.get_graph().draw_mermaid_png()))
+conversation_memory: list[BaseMessage] = []
 
-# Run the app
-# Conversation memory (holds the full dialogue history)
-message_history: list[BaseMessage] = []
-
-print("🤖 Welcome to your medical assistant!")
-print("💬 Type your symptom or concern (e.g., 'sore throat'), or type 'exit' to quit.\n")
-
-while True:
-    user_input = input("👤 You: ").strip()
-
-    if user_input.lower() == "exit":
-        print("👋 Goodbye! Stay healthy.")
-        break
-
-    # Add the user's message to the memory
-    message_history.append(HumanMessage(content=user_input))
-
-    # Prepare state with full history
-    state = {
-        "messages": message_history
-    }
-
+@app.post("/ask")
+async def ask(input_data: SymptomInput):
+    user_msg = input_data.message.strip()
+    conversation_memory.append(HumanMessage(content=user_msg))
+    state = {"messages": conversation_memory}
     while True:
-        # Invoke the app (agent + toolchain)
-        state = app.invoke(state)
-
-        # Retrieve and store the assistant's response
-        last_message = state["messages"][-1]
-        message_history.append(last_message)
-
-        # Display the assistant response
-        print("\nAssistant:")
-        pprint(last_message.content)
-
-        # End inner loop if there are no further tool calls
-        if not getattr(last_message, "tool_calls", None):
-            print("\nYou can ask another question or type 'exit' to quit.")
+        state = agent_app.invoke(state)
+        last_msg = state["messages"][-1]
+        conversation_memory.append(last_msg)
+        if not getattr(last_msg, "tool_calls", None):
             break
+    return {"response": last_msg.content}
+
 
 

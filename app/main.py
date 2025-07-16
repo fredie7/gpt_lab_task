@@ -216,18 +216,41 @@ agent_app = graph.compile()
 
 conversation_memory: list[BaseMessage] = []
 
+# @app.post("/ask")
+# async def ask(input_data: SymptomInput):
+#     user_msg = input_data.message.strip()
+#     conversation_memory.append(HumanMessage(content=user_msg))
+#     state = {"messages": conversation_memory}
+#     while True:
+#         state = agent_app.invoke(state)
+#         last_msg = state["messages"][-1]
+#         conversation_memory.append(last_msg)
+#         if not getattr(last_msg, "tool_calls", None):
+#             break
+#     return {"response": last_msg.content}
+
+
+import asyncio
+
 @app.post("/ask")
 async def ask(input_data: SymptomInput):
     user_msg = input_data.message.strip()
     conversation_memory.append(HumanMessage(content=user_msg))
     state = {"messages": conversation_memory}
+
+    # Run the blocking part in a separate thread
+    state = await asyncio.to_thread(run_agent_loop, state)
+    last_msg = state["messages"][-1]
+    return {"response": last_msg.content}
+
+
+def run_agent_loop(state):
     while True:
         state = agent_app.invoke(state)
         last_msg = state["messages"][-1]
         conversation_memory.append(last_msg)
         if not getattr(last_msg, "tool_calls", None):
             break
-    return {"response": last_msg.content}
-
+    return state
 
 

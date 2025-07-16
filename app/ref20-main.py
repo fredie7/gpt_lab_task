@@ -1,4 +1,4 @@
-# Necessary imports
+# Import dependencies
 import os
 import pandas as pd
 from fastapi import FastAPI, Request
@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from typing import Literal, Dict,TypedDict, Sequence, Annotated
 from typing_extensions import TypedDict
 from langchain_core.documents import Document
-from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
@@ -41,37 +40,45 @@ if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is missing.")
 print("OPENAI_API_KEY found.")
 
-# FastAPI app + CORS
+# Initialize FastAPI
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*","http://localhost:3000/"],  # Update in production
+    allow_origins=["*","http://localhost:3000/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Input schema
-
+# Define the server's schema
 class SymptomInput(BaseModel):
     message: str
-    history: list[dict] = []  # Expecting [{"role": "user"/"assistant", "content": "..."}]
+    history: list[dict] = [] 
     session_id: str
 
 # Load and preprocess dataset once
 def load_documents():
+    # Check if documents are already cached to avoid repeated loading
     if hasattr(load_documents, "cached"):
         return load_documents.cached
 
-    print("📥 Loading and cleaning dataset...")
+    print("Loading and cleaning dataset...")
+    # Load the dataset
     df = pd.read_csv("symptoms_data.csv")
-    df['symptom'] = df['symptom'].str.strip().str.lower()
+   
+    # Clean the dataset
+
+    # Normalize symptom text
+    df['symptom'] = df['symptom'].str.strip().str.lower() 
+    # Convert conditions to Lists strip them of whitespace(s)
     df['conditions'] = df['conditions'].apply(lambda x: [c.strip() for c in x.split(',')] if pd.notnull(x) else [])
+    # Convert follow-up questions to Lists strip them of whitespace(s)
     df['follow_up_questions'] = df['follow_up_questions'].apply(lambda x: [q.strip() for q in x.split(';')] if pd.notnull(x) else [])
 
+    # Convert each row into a Document object to help the LLM understand the context
     docs = [
         Document(
-            page_content=f"symptom: {row['symptom']}\nfollow_up: {'; '.join(row['follow_up_questions'])}",
+            page_content=f"symptom: {row['symptom']}\nconditions: {', '.join(row['conditions'])}\nfollow_up: {'; '.join(row['follow_up_questions'])}",
             metadata={
                 "symptom": row['symptom'],
                 "conditions": row['conditions'],
@@ -86,6 +93,9 @@ def load_documents():
 # Load documents
 documents = load_documents()
 
+# Perform RAG(Retrieval-Augmented Generation)
+
+# Initialize embeddings
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=OPENAI_API_KEY)
 
 text_splitter = RecursiveCharacterTextSplitter(
@@ -174,7 +184,7 @@ def medical_agent(state: MedicalAgentState) -> MedicalAgentState:
         """
     )
 
-    print("🤖 [Agent] Invoking medical assistant with current message state...")
+    print("[Agent] Invoking medical assistant with current message state...")
     response = llm.invoke([system_prompt] + state['messages'])
 
     # Track Tools
@@ -214,23 +224,12 @@ graph.add_conditional_edges(
 graph.add_edge("tools", "medical_agent")
 agent_app = graph.compile()
 
-conversation_memory: list[BaseMessage] = []
+# Create conversation store to handle multiple users
 conversation_store: Dict[str, list[BaseMessage]] = {}
 
-# @app.post("/ask")
-# async def ask(input_data: SymptomInput):
-#     user_msg = input_data.message.strip()
-#     conversation_memory.append(HumanMessage(content=user_msg))
-#     state = {"messages": conversation_memory}
-#     while True:
-#         state = agent_app.invoke(state)
-#         last_msg = state["messages"][-1]
-#         conversation_memory.append(last_msg)
-#         if not getattr(last_msg, "tool_calls", None):
-#             break
-#     return {"response": last_msg.content}
 
 
+# handle multiple users at a time
 import asyncio
 
 @app.post("/ask")

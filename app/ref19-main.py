@@ -56,7 +56,7 @@ app.add_middleware(
 class SymptomInput(BaseModel):
     message: str
     history: list[dict] = []  # Expecting [{"role": "user"/"assistant", "content": "..."}]
-    session_id: str
+
 
 # Load and preprocess dataset once
 def load_documents():
@@ -215,7 +215,6 @@ graph.add_edge("tools", "medical_agent")
 agent_app = graph.compile()
 
 conversation_memory: list[BaseMessage] = []
-conversation_store: Dict[str, list[BaseMessage]] = {}
 
 # @app.post("/ask")
 # async def ask(input_data: SymptomInput):
@@ -236,38 +235,22 @@ import asyncio
 @app.post("/ask")
 async def ask(input_data: SymptomInput):
     user_msg = input_data.message.strip()
-    session_id = input_data.session_id.strip()
+    conversation_memory.append(HumanMessage(content=user_msg))
+    state = {"messages": conversation_memory}
 
-    # Initialize session if it doesn't exist
-    if session_id not in conversation_store:
-        conversation_store[session_id] = []
-
-    # Add user message to a local copy
-    local_messages = conversation_store[session_id] + [HumanMessage(content=user_msg)]
-    state = {"messages": local_messages}
-
-    # Run blocking agent in separate thread
-    state = await asyncio.to_thread(run_agent_loop, state, session_id)
-
-    # Update session store
-    conversation_store[session_id] = state["messages"]
+    # Run the blocking part in a separate thread
+    state = await asyncio.to_thread(run_agent_loop, state)
     last_msg = state["messages"][-1]
-
     return {"response": last_msg.content}
 
 
-
-
-def run_agent_loop(state, session_id):
-    local_messages = state["messages"].copy()  # Avoid mutating shared list
+def run_agent_loop(state):
     while True:
-        state = agent_app.invoke({"messages": local_messages})
+        state = agent_app.invoke(state)
         last_msg = state["messages"][-1]
-        local_messages.append(last_msg)
+        conversation_memory.append(last_msg)
         if not getattr(last_msg, "tool_calls", None):
             break
-    return {"messages": local_messages}
-
-
+    return state
 
 

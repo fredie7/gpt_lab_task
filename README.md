@@ -2,6 +2,9 @@
 
 This project delivers an Agentic AI Healthcare Assistant that integrates Retrieval-Augmented Generation (RAG) with Reasoning and Action (ReAct) architecture. This collaborative framework enables the assistant to not only provide diagnostic insights but also offer personalized recommendations accompanied by supportive explanations.
 
+### Tools Used:
+Python, Langchain, Langgraph, Next Js
+
 ### The Retrieval-Augmented Generation(RAG) Pipeline
 
 The project's RAG pipeline begins with the preprocessing of medical data, which includes symptoms, associated conditions, and follow-up questions. To ensure the integrity of the data and prevent leakage during interaction with a large language model (LLM), the dataset is first examined for inconsistencies, procesed, then divided into manageable chunks. This is accomplished using the RecursiveCharacterTextSplitter, configured with a chunk size of 1000 and a chunk overlap of 200.

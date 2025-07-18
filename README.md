@@ -13,4 +13,16 @@ Afterwards, a retrieval mechanism is established to fetch the most relevant docu
 
 
 ### System Design
+
+The system design follows the classic ReAct architecture, which integrates reasoning and action in a crisp decision-making process. At the core of this framework is a master agent that utilizes a Large Language Model to reason through problems. This agent is also equipped with predefined tools, also known as functions, which it uses to perform specific actions. The process begins with the master agent analyzing the problem and selecting the most appropriate tool from a suite of available options. Once the selected tool performs its task, the result is returned to the agent. The agent then combines this result with its understanding of the task to generate a final output for the user.
+
 ![image_alt](https://github.com/fredie7/gpt_lab_task/blob/main/Screenshot%20(3736).png?raw=true)
+
+<div align="center">
+  <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Screenshot%20(3736).png?raw=true" alt="image_alt" />
+</div>
+
+
+Similarly, this health-care assistant employs a master supervisory agent that initiates the application flow. This agent operates with a low-temperature LLM to minimize hallucinations and ensure stable outputs. It is bound to three specialized tools that incorporate the retrieval augmented generation pipeline in their working functions, and these tools are: a diagnostic tool, a recommendation tool, and an explanatory tool. The diagnostic tool asks probing questions about the user's health, based on predefined data. The recommendation tool offers appropriate suggestions, while the explanatory tool provides justifications for those suggestions.
+As illustrated in the system diagram, the agent serves as the starting point of the application. It engages in a feedback loop with the tools node, which encapsulates all three tools. Each tool contains a key called “tool_call”, which signals whether it has information to return to the master agent. This feedback loop, represented by the “continue” edge, remains active as long as there are pending “tool_calls”. Once all tool calls are completed, the process transitions back to the master agent, through the upper “end” edge to the lower “end” node, where the final response is delivered to the user.
+

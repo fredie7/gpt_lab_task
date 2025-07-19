@@ -22,6 +22,11 @@ The system design follows the classic ReAct architecture, which integrates reaso
   <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Screenshot%20(3736).png?raw=true" alt="image_alt" />
 </div>
 
+<div align="center">
+  <img src="https://github.com/fredie7/gpt_lab_task/blob/main/System%20design%20(3736).png?raw=true" />
+</div>
+  
+
 
 Similarly, this health-care assistant employs a master supervisory agent that initiates the application flow. This agent operates with a low-temperature LLM to minimize hallucinations and ensure stable outputs. It is bound to three specialized tools that incorporate the retrieval augmented generation pipeline in their working functions, and these tools are: a diagnostic tool, a recommendation tool, and an explanatory tool. The diagnostic tool asks probing questions about the user's health, based on predefined data. The recommendation tool offers appropriate suggestions, while the explanatory tool provides justifications for those suggestions.
 As illustrated in the system diagram, the agent serves as the starting point of the application. It engages in a feedback loop with the tools node, which encapsulates all three tools. Each tool contains a key called “tool_call”, which signals whether it has information to return to the master agent. This feedback loop, represented by the “continue” edge, remains active as long as there are pending “tool_calls”. Once all tool calls are completed, the process transitions back to the master agent, through the upper “end” edge to the lower “end” node, where the final response is delivered to the user.

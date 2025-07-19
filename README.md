@@ -19,10 +19,6 @@ The system design follows the classic ReAct architecture, which integrates reaso
 <!--![image_alt](https://github.com/fredie7/gpt_lab_task/blob/main/Screenshot%20(3736).png?raw=true)-->
 
 <div align="center">
-  <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Screenshot%20(3736).png?raw=true" alt="image_alt" />
-</div>
-
-<div align="center">
   <img src="https://github.com/fredie7/gpt_lab_task/blob/main/System%20design%20(3736).png?raw=true" />
 </div>
   

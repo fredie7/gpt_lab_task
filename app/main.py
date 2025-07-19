@@ -113,21 +113,21 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=OPE
 
 # Split documents into manageable chunks
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=200
+    chunk_size=700,
+    chunk_overlap=500
 )
 
 # Split documents into smaller chunks for better retrieval to help the model retrieve relevant context
 documents_split = text_splitter.split_documents( documents)
 
-# Create a vector store using FAISS to store the  documents withing specified index
+# Create a vector store using FAISS to store the  documents within specified index
 vectorstore = FAISS.from_documents(documents, embeddings)
 
 # Initialize the LLM and set the temperature in a way to prevent hallucination
 llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY,temperature=0.0)
 
 # Create a retrieval chain to handle the retrieval of relevant documents and generate responses based on user input
-chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
+chain = RetrievalQA.from_chain_type(llm=llm, chain_type="map_reduce", retriever=vectorstore.as_retriever())
 # print("CHAIN===>>", chain.invoke("fatigue"))
 
 # Define tools decorator for the agent to use
@@ -137,7 +137,7 @@ def provide_diagnosis(symptom: str) -> str:
     """Return follow-up diagnostic questions based on the symptom to help another medical assistant make recommendations."""
 
     # retrieve top 1 match to the user's symptom
-    docs = vectorstore.similarity_search(symptom, k=1)  
+    docs = vectorstore.similarity_search(symptom, k=3)  
 
     # Initialize an empty list to store follow-up questions
     follow_up_questions = [] 
@@ -218,14 +218,13 @@ def medical_agent(state: MedicalAgentState) -> MedicalAgentState:
     system_prompt = SystemMessage(
         content=f"""
             You are a medical assistant responsible for managing the conversation among these worker agents: {tools}.
-            - First ask 'Before we proceed, could you please provide your name, age, and gender? This is to help me get to know you'.
+            - First ask 'Hello! Before we proceed, could you please provide your name, age, and gender? This is to help me get to know you'.
             -Include the patient's name in the conversation to make it personalized, but not on every response
-            - Provide diagnostic questions to examine the patient
-            - Relay patient's diagnostic answers with the recommender agent to provide recommendations
-            - Relay recommendations with the explainer agent to explain the reasons for the recommendation.
-            - Ask the user if they need an explanations for the recommendations after recommendation is done.
             - For each response, start with the corresponding agent or tool responsible for instance (Diagnostic Agent):, (Recommendation Agent):, (Explanation Agent):.
-            - Though you would discover more than one question from the diagnostic agent, ask them one at a time rather than asking them all at once.Make sure to ask all the questions and take note of the responses to provide enough information for the recommender agent and before activating it.
+            - Provide diagnostic questions to examine the patient
+            - Though you would discover more than one question from the diagnostic agent, ask them one at a time.
+            - Even if the patient decides to respond with short yes, no or short vague answers, convey the entire context to the recommender agent.
+            - Don't include any technocal error messages in your responses
             - After providing a recommendation, ask the user if they need an explanation for the recommendation.
         """
     )

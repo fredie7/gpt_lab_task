@@ -1,6 +1,12 @@
 ## Agentic AI for Medical Diagnosis, Recommendation & Explanation
 
-This project delivers an Agentic AI Healthcare Assistant that integrates Retrieval-Augmented Generation (RAG) with Reasoning and Action (ReAct) architecture. This collaborative framework enables the assistant to not only provide diagnostic insights but also offer personalized recommendations accompanied by supportive explanations.
+This project delivers an Agentic AI Healthcare Assistant that integrates Retrieval-Augmented Generation (RAG) with Reasoning and Action (ReAct) architecture.
+The workflow involves a supervisory agent which engages in a continuous feedback loop with the:
+<l1>Diagnostic agent</l1>
+<l1>Recommender agent</l1>
+<l1>Explainer agent</l1>
+This collaborative framework enables the assistant to not only provide diagnostic insights but also offer personalized recommendations accompanied by supportive explanations.
+
 
 ### Tools Used:
 Python, Langchain, Langgraph, Next Js

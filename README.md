@@ -95,7 +95,7 @@ The Fig 4 above shows the user interface of the application, while Fig 5 to Fig 
 
 To run the system locally on your computer:
 1.	Spin up your terminal from Visual Studio Code
-2.	Navigate to the Command Prompt
+2.	Navigate to the Command Prompt(preferred)
 3.	Clone the repository using: git clone https://github.com/fredie7/gpt_lab_task.git
 4.	Go into the directory: cd gpt_lab_task
 5.	Create a virtual environment: python -m venv env

@@ -5,7 +5,7 @@ The workflow involves a supervisory agent which engages in a continuous feedback
 <li>Diagnostic agent</li>
 <li>Recommender agent</li>
 <li>Explainer agent</li>
-This collaborative framework enables the assistant to not only provide diagnostic insights but also offer personalized recommendations accompanied by supportive explanations.
+This collaborative framework enables the assistant to not only provide diagnostic insights but also offer personalized recommendations accompanied with supportive explanations.
 
 
 ### Tools Used:

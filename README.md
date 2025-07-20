@@ -91,7 +91,7 @@ The first arrow in Fig. 3 shows how the user’s message is initially collected 
   </tr>
 </table>
 
-Meanwhile, here's a link to th frontend repository: (https://github.com/fredie7/gpt_lab_task_frontend)
+Meanwhile, here's a link to the frontend repository: (https://github.com/fredie7/gpt_lab_task_frontend)
 
 
 

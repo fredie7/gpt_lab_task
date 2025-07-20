@@ -29,9 +29,14 @@ As illustrated in the system diagram, the agent serves as the starting point of 
 
 ### Agent Collboration
 
-<p align="center" style="display: flex; align-items: center;">
-  <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Tool%20Calls%20(3770).png?raw=true" height="300" style="margin-right: 10px;"/>
-  <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Tools%20interaction%20(3774).png?raw=true" height="300"/>
+<p align="center">
+  <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Tool%20Calls%20(3770).png?raw=true" height="300">
+  <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Tools%20interaction%20(3774).png?raw=true" height="300">
+</p>
+
+<p align="center">
+  <span style="display: inline-block; width: 300px; text-align: center;">(Fig 1) Tool Calls</span>
+  <span style="display: inline-block; width: 300px; text-align: center;">(Fig 2) Tools Interaction</span>
 </p>
 
 

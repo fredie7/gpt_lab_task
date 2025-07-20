@@ -20,7 +20,8 @@ The system design follows the classic ReAct architecture, which integrates reaso
 
 <div align="center">
   <img src="https://github.com/fredie7/gpt_lab_task/blob/main/System%20design%20(3736).png?raw=true" />
-   <sub><b>Fig 1.</b> Tool Calls</sub>
+  <br>
+   <sub><b>Fig 1.</b> Work FLow</sub>
 </div>
   
 

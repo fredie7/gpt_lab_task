@@ -20,6 +20,7 @@ The system design follows the classic ReAct architecture, which integrates reaso
 
 <div align="center">
   <img src="https://github.com/fredie7/gpt_lab_task/blob/main/System%20design%20(3736).png?raw=true" />
+   <sub><b>Fig 1.</b> Tool Calls</sub>
 </div>
   
 
@@ -33,11 +34,11 @@ As illustrated in the system diagram, the agent serves as the starting point of 
   <tr>
     <td align="center">
       <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Tool%20Calls%20(3770).png?raw=true" height="300"><br>
-      <sub><b>Fig 1.</b> Tool Calls</sub>
+      <sub><b>Fig 2.</b> Tool Calls</sub>
     </td>
     <td align="center">
       <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Tools%20interaction%20(3774).png?raw=true" height="300"><br>
-      <sub><b>Fig 2.</b> Tools Interaction</sub>
+      <sub><b>Fig 3.</b> Tools Interaction</sub>
     </td>
   </tr>
 </table>

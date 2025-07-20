@@ -56,7 +56,7 @@ In Fig. 2, the first arrow indicates the initial step, where the medical agent r
 
 These tools are triggered in response to the flow of conversation—depending on whether the user seeks a diagnosis for a health concern, a medical recommendation or advice, or an explanation for a previously provided suggestion.
 
-The first arrow in Fig. 2 shows how the user’s message is initially collected and passed as an argument to the diagnostic agent. The steps that follow the second arrow involve continuous interactions between the diagnostic agent and the user, during which the agent gathers all necessary information. Once this process is complete, the second arrow indicates the point at which the recommender agent is activated. The third arrow then shows how the recommender agent relays its report to the explanation agent, along with contextual user data to support the explanation process.
+The first arrow in Fig. 3 shows how the user’s message is initially collected and passed as an argument to the diagnostic agent. The steps that follow the second arrow involve continuous interactions between the diagnostic agent and the user, during which the agent gathers all necessary information. Once this process is complete, the second arrow indicates the point at which the recommender agent is activated. The third arrow then shows how the recommender agent relays its report to the explanation agent, along with contextual user data to support the explanation process.
 
 
 

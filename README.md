@@ -4,7 +4,7 @@ This project delivers an Agentic AI Healthcare Assistant that integrates Retriev
 The workflow involves a supervisory agent which engages in a continuous feedback loop with the:
 <li>Diagnostic agent</li>
 <li>Recommender agent</li>
-<li>Explainer agent</li>
+<li>Explaination agent</li>
 This collaborative framework enables the assistant to not only provide diagnostic insights but also offer personalized recommendations accompanied with supportive explanations.
 
 

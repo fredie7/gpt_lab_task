@@ -91,6 +91,8 @@ The first arrow in Fig. 3 shows how the user’s message is initially collected 
   </tr>
 </table>
 
+The Fig 4 above shows the user interface of the application, while Fig 5 to Fig 9 show the interaction between the sample user, “Rico” and all 3 agents (Diagnostic Agent, Recommender Agent & Explainer Agent)
+
 Meanwhile, here's a link to the frontend repository: (https://github.com/fredie7/gpt_lab_task_frontend)
 
 

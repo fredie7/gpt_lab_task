@@ -58,6 +58,37 @@ These tools are triggered in response to the flow of conversation—depending on
 
 The first arrow in Fig. 3 shows how the user’s message is initially collected and passed as an argument to the diagnostic agent. The steps that follow the second arrow involve continuous interactions between the diagnostic agent and the user, during which the agent gathers all necessary information. Once this process is complete, the second arrow indicates the point at which the recommender agent is activated. The third arrow then shows how the recommender agent relays its report to the explanation agent, along with contextual user data to support the explanation process.
 
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/fredie7/gpt_lab_task/blob/main/UI%20(3776).png?raw=true" height="200"><br>
+      <sub><b>Fig 1.</b> UI Overview</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_1%20(3763).png?raw=true" height="200"><br>
+      <sub><b>Fig 2.</b> Conversation 1</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_2%20(3764).png?raw=true" height="200"><br>
+      <sub><b>Fig 3.</b> Conversation 2</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_3%20(3765).png?raw=true" height="200"><br>
+      <sub><b>Fig 4.</b> Conversation 3</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_4%20(3766).png?raw=true" height="200"><br>
+      <sub><b>Fig 5.</b> Conversation 4</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_5%20(3767).png?raw=true" height="200"><br>
+      <sub><b>Fig 6.</b> Conversation 5</sub>
+    </td>
+  </tr>
+</table>
+
 
 
 

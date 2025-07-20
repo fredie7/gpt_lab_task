@@ -224,7 +224,7 @@ def medical_agent(state: MedicalAgentState) -> MedicalAgentState:
             - Provide diagnostic questions to examine the patient
             - Though you would discover more than one question from the diagnostic agent, ask them one at a time.
             - Even if the patient decides to respond with short yes, no or short vague answers, convey the entire context to the recommender agent.
-            - Don't include any technocal error messages in your responses
+            - Don't include any technical error messages in your responses
             - After providing a recommendation, ask the user if they need an explanation for the recommendation.
         """
     )

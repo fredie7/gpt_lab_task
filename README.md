@@ -68,16 +68,18 @@ The first arrow in Fig. 3 shows how the user’s message is initially collected 
       <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_1%20(3763).png?raw=true" height="200"><br>
       <sub><b>Fig 2.</b> Conversation 1</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center">
       <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_2%20(3764).png?raw=true" height="200"><br>
       <sub><b>Fig 3.</b> Conversation 2</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center">
       <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_3%20(3765).png?raw=true" height="200"><br>
       <sub><b>Fig 4.</b> Conversation 3</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center">
       <img src="https://github.com/fredie7/gpt_lab_task/blob/main/conversation_4%20(3766).png?raw=true" height="200"><br>
       <sub><b>Fig 5.</b> Conversation 4</sub>
@@ -88,6 +90,7 @@ The first arrow in Fig. 3 shows how the user’s message is initially collected 
     </td>
   </tr>
 </table>
+
 
 
 

@@ -50,6 +50,11 @@ As illustrated in the system diagram, the agent serves as the starting point of 
   </tr>
 </table>
 
+The agentic AI workflow follows a continuous loop of reasoning and action between the medical agent and its three sub-agents. As shown in Fig. 2 and Fig. 3, the diagnostic agent is labeled as provide_diagnosis, the recommender agent as provide_recommendation, and the explanation agent as provide_explanation.
+
+In Fig. 2, the first arrow indicates the initial step, where the medical agent requests feedback from all three sub-agents after receiving a user message. The second arrow points to the activation of the provide_diagnosis tool, followed by the third and fourth arrows, which point to the provide_recommendation and provide_explanation tools, respectively.
+
+These tools are triggered in response to the flow of conversation—depending on whether the user seeks a diagnosis for a health concern, a medical recommendation or advice, or an explanation for a previously provided suggestion.
 
 
 

@@ -94,7 +94,7 @@ The first arrow in Fig. 3 shows how the user’s message is initially collected 
 The Fig 4 above shows the user interface of the application, while Fig 5 to Fig 9 show the interaction between the sample user, “Rico” and all 3 agents (Diagnostic Agent, Recommender Agent & Explainer Agent)
 
 To run the system locally on your computer:
-1.	Spin up your terminal from vscode
+1.	Spin up your terminal from Visual Studio Code
 2.	Navigate to the Command Prompt
 3.	Clone the repository using: git clone https://github.com/fredie7/gpt_lab_task.git
 4.	Go into the directory: cd gpt_lab_task

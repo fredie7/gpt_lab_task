@@ -27,7 +27,7 @@ The system design follows the classic ReAct architecture, which integrates reaso
 <div align="center">
   <img src="https://github.com/fredie7/gpt_lab_task/blob/main/Syatem%20Design%20(3778).png?raw=true" />
   <br>
-   <sub><b>Fig 1.</b> WorkfLow</sub>
+   <sub><b>Fig 1.</b> Workflow</sub>
 </div>
   
 

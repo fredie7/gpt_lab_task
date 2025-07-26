@@ -98,7 +98,7 @@ The Fig 4 above shows the user interface of the application, while Fig 5 to Fig 
   <a href="https://medical-agentic-ai-client-ofws69j68-matthews-projects-f7e07378.vercel.app/" target="_blank" rel="noopener noreferrer">
     https://medical-agentic-ai-client-ofws69j68-matthews-projects-f7e07378.vercel.app/
   </a>
-  <p>PLease, note that it's been hosted on the free tier plan of Render, and it might take a while to respond to your very first message - But, it ultimately becomes a fluid conversational exchange after that.</p>
+  <p>PLease, note that it's been hosted on the free tier plan of Render, and it might take a while to respond to your very first message - This is because Render hybernates after 15 minutes of no API calls. But, it ultimately becomes a fluid conversational exchange after that.</p>
 </p>
 
 

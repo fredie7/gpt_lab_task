@@ -93,7 +93,13 @@ The first arrow in Fig. 3 shows how the user’s message is initially collected 
 
 The Fig 4 above shows the user interface of the application, while Fig 5 to Fig 9 show the interaction between the sample user, “Rico” and all 3 agents (Diagnostic Agent, Recommender Agent & Explainer Agent)
 
-Fiddle with the application via the following link: https://medical-agentic-ai-client-ofws69j68-matthews-projects-f7e07378.vercel.app/
+<p>
+  Fiddle with the application via the following link: 
+  <a href="https://medical-agentic-ai-client-ofws69j68-matthews-projects-f7e07378.vercel.app/" target="_blank" rel="noopener noreferrer">
+    https://medical-agentic-ai-client-ofws69j68-matthews-projects-f7e07378.vercel.app/
+  </a>
+</p>
+
 
 To run the system locally on your computer:
 1.	Spin up your terminal from Visual Studio Code

@@ -11,6 +11,9 @@ import os
 # Load environment variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY is missing.")
+print("OPENAI_API_KEY found.")
 
 # Load and preprocess dataset once
 def load_documents():

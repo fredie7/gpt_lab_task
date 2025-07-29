@@ -1,5 +1,4 @@
 # Import dependencies
-import os
 import asyncio
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,12 +9,6 @@ from typing import Dict
 from agents import agent_app, run_agent_loop, conversation_store
 from data_loader import load_documents
 
-# Load environment variables
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY is missing.")
-print("OPENAI_API_KEY found.")
 
 # Initialize FastAPI
 app = FastAPI()

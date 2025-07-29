@@ -12,6 +12,7 @@ import os
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Load and preprocess dataset once
 def load_documents():
     if hasattr(load_documents, "cached"):
         return load_documents.cached

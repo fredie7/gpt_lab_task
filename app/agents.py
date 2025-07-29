@@ -4,9 +4,8 @@ from langchain_core.messages import BaseMessage, SystemMessage
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 from langgraph.graph.message import add_messages
-from langchain_openai import ChatOpenAI
 from tools import tools
-from data_loader import chain,llm
+from data_loader import llm
 
 # Bind the tools to the LLM
 llm = llm.bind_tools(tools)

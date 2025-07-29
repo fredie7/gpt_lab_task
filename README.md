@@ -9,7 +9,7 @@ This collaborative framework enables the assistant to not only provide diagnosti
 
 
 ### Tools Used:
-Python, RAG, Langchain, Langgraph, Prompt Engineering, Next Js
+Python, RAG, Langchain, Langgraph, LLM(OpenAI), Prompt Engineering, Next Js
 
 ### The Retrieval-Augmented Generation(RAG) Pipeline
 
@@ -17,7 +17,7 @@ The project's RAG pipeline begins with the preprocessing of medical data, which 
 The choice of 700 and 500 has been made for the chunk size and chunk overlap, respectively, after several iterations to ensure a balance between context preservation and information density, especially in a medical context, where critical details may span across chunk boundaries
 
 Subsequently, a FAISS (Facebook AI Similarity Search) vector database is introduced to store the processed document chunks. To enable efficient similarity search, the text chunks are first converted into numerical embeddings using an OpenAI embedding utility referred to as “text-embedding-3-smal“. These embeddings are then stored in the FAISS vector database in index form for fast retrieval.
-Afterwards, a retrieval mechanism is established to fetch the most relevant document chunks in response to prospective user queries. This is achieved through the RetrievalQA component, which integrates the retriever with a language model. The retriever identifies and pulls the most relevant context from the FAISS index, while the language model. OpenAI’s GPT-4o generates a coherent response. A temperature setting of 0.0 is used to minimize hallucinations and ensure consistent output.
+Afterwards, a retrieval mechanism is established to fetch the most relevant document chunks in response to prospective user queries. This is achieved through the RetrievalQA component, which integrates the retriever with a language model. The retriever identifies and pulls the most relevant context from the FAISS index, while the language model, OpenAI’s GPT-4o generates a coherent response. A temperature setting of 0.0 is used to minimize hallucinations and ensure consistent output.
 
 
 ### System Design

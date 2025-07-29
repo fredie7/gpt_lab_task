@@ -9,7 +9,7 @@ This collaborative framework enables the assistant to not only provide diagnosti
 
 
 ### Tools Used:
-Python, Langchain, Langgraph, Next Js
+Python, RAG, Langchain, Langgraph, Prompt Engineering, Next Js
 
 ### The Retrieval-Augmented Generation(RAG) Pipeline
 

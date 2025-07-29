@@ -100,7 +100,7 @@ The Fig 4 above shows the user interface of the application, while Fig 5 to Fig 
   <a href="https://medical-agentic-ai-client.vercel.app/" target="_blank" rel="noopener noreferrer">
     https://medical-agentic-ai-client-ofws69j68-matthews-projects-f7e07378.vercel.app/
   </a>
-  <p>But, please note that it has been hosted on the free tier plan of Render, and it may take a while to respond to your first message. This is because Render hibernates after 15 minutes         of no API calls. It ultimately becomes a fluid conversational exchange after that.
+  <p>But, please note that it has been hosted on the free tier plan of Render for automated CI/CD, and it may take a while to respond to your first message. This is because Render hibernates after 15 minutes         of no API calls. It ultimately becomes a fluid conversational exchange after that.
   </p>
 </p>
 

@@ -109,7 +109,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 documents_split = text_splitter.split_documents( documents)
 
 # Create a vector store using FAISS to store the  documents within specified index
-vectorstore = FAISS.from_documents(documents, embeddings)
+vectorstore = FAISS.from_documents(documents_split, embeddings)
 
 # Initialize the LLM and set the temperature in a way to prevent hallucination
 llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY,temperature=0.0)

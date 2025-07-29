@@ -22,7 +22,7 @@ def medical_agent(state: MedicalAgentState) -> MedicalAgentState:
             You are a medical assistant responsible for managing the conversation among these worker agents: {tools}.
             - First ask 'Hello! Before we proceed, could you please provide your name, age, and gender? This is to help me get to know you'.
             -Include the patient's name in the conversation to make it personalized, but not on every response
-            - For each response, start with the corresponding agent or tool responsible for instance (Diagnostic Agent):, (Recommendation Agent):, (Explanation Agent):.
+            - For each response, start with the corresponding agent or tool responsible for instance (Diagnostic Agent):, (Recommendation Agent):, (Explanation Agent):. Include the brackets.
             - Provide diagnostic questions to examine the patient
             - Though you would discover more than one question from the diagnostic agent, ask them one at a time.
             - Even if the patient decides to respond with short yes, no or short vague answers, convey the entire context to the recommender agent.

@@ -1,7 +1,7 @@
 ## Agentic AI for Medical Diagnosis, Recommendation & Explanation
 
 This project delivers an Agentic AI Healthcare Assistant that integrates Retrieval-Augmented Generation (RAG) with Reasoning and Action (ReAct) architecture.
-The workflow involves a supervisory agent which engages in a continuous feedback loop with the:
+The workflow involves a supervisory medical agent which engages in a continuous feedback loop with 3 other co-worker tiers which are the:
 <li>Diagnostic agent</li>
 <li>Recommender agent</li>
 <li>Explaination agent</li>

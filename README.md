@@ -52,11 +52,11 @@ As illustrated in the workflow from (Fig 1), the medical agent serves as the sta
   </tr>
 </table>
 
-The agentic AI workflow follows a continuous loop of reasoning and action between the medical agent and its three sub-agents. As shown in Fig. 2 and Fig. 3, the diagnostic agent is labeled as provide_diagnosis, the recommender agent as provide_recommendation, and the explanation agent as provide_explanation.
+The agentic AI workflow follows a continuous loop of reasoning and action between the medical agent and its three co-workers. As shown in Fig. 2 and Fig. 3, the diagnostic agent is labeled as provide_diagnosis, the recommender agent as provide_recommendation, and the explanation agent as provide_explanation.
 
-In Fig. 2, the first arrow indicates the initial step, where the medical agent requests feedback from all three sub-agents after receiving a user message. The second arrow points to the activation of the provide_diagnosis tool, followed by the third and fourth arrows, which point to the provide_recommendation and provide_explanation tools, respectively.
+In Fig. 2, the first arrow indicates the initial step, where the medical agent requests feedback from all three sub-agents after receiving a user's message. The second arrow points to the activation of the provide_diagnosis tool, followed by the third and fourth arrows, which point to the provide_recommendation and provide_explanation tools, respectively.
 
-These tools are triggered in response to the flow of conversation—depending on whether the user seeks a diagnosis for a health concern, a medical recommendation or advice, or an explanation for a previously provided suggestion.
+These tools are triggered in response to the flow of conversation—depending on whether the user seeks a diagnosis for a health concern, a medical recommendation or advice, or an explanation for a previously provided recommendation.
 
 The first arrow in Fig. 3 shows how the user’s message is initially collected and passed as an argument to the diagnostic agent. The steps that follow the second arrow involve continuous interactions between the diagnostic agent and the user, during which the agent gathers all necessary information. Once this process is complete, the second arrow indicates the point at which the recommender agent is activated. The third arrow then shows how the recommender agent relays its report to the explanation agent, along with contextual user data to support the explanation process.
 

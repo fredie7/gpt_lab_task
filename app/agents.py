@@ -6,10 +6,10 @@ from langgraph.prebuilt import ToolNode
 from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
 from tools import tools
-from data_loader import chain
+from data_loader import chain,llm
 
 # Bind the tools to the LLM
-llm = ChatOpenAI(model="gpt-4o", temperature=0.0).bind_tools(tools)
+llm = llm.bind_tools(tools)
 
 # Define the state that manages information between users and all agents
 class MedicalAgentState(TypedDict):

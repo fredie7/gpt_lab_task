@@ -22,7 +22,7 @@ Afterwards, a retrieval mechanism is established to fetch the most relevant docu
 
 ### System Design
 
-The system design follows the classic ReAct architecture, which integrates reasoning and action in a crisp decision-making process. At the core of this framework is a master agent that utilizes a Large Language Model to reason through problems. This agent is also equipped with predefined tools, also known as functions, which it uses to perform specific actions. The process begins with the master agent analyzing the problem and selecting the most appropriate tool from a suite of available options. Once the selected tool performs its task, the result is returned to the agent. The agent then combines this result with its understanding of the task to generate a final output for the user.
+The system design follows the classic ReAct architecture(reasoning & action), which integrates reasoning and action in a crisp decision-making process. At the core of this framework is a master agent(medical_agent) that utilizes the LLM to reason through health problems. This agent is also equipped with predefined tools, also known as functions, which it uses to perform specific actions. The process begins with the master agent analyzing the problem and "reasons" by selecting the most appropriate tool from a suite of available options. Once the selected tool performs its task, the result is returned to the agent. The agent then "acts" by combining this result with its understanding of the task to generate a final output for the user.
 
 <!--![image_alt](https://github.com/fredie7/gpt_lab_task/blob/main/Screenshot%20(3736).png?raw=true)-->
 

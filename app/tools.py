@@ -1,4 +1,8 @@
+#Import dependencies
+
+# Decorator to register tools for use by agents
 from langchain_core.tools import tool
+# Load pre-configured vector store and retrieval chain
 from data_loader import vectorstore, chain
 
 # Define tools decorator for the agent to use
@@ -7,10 +11,10 @@ from data_loader import vectorstore, chain
 def provide_diagnosis(symptom: str) -> str:
     """Return follow-up diagnostic questions based on the symptom to help another medical assistant make recommendations."""
 
-    # retrieve top 1 match to the user's symptom
+    # Retrieve top 3 similar documents related to the symptom from the vector database
     docs = vectorstore.similarity_search(symptom, k=3)  
 
-    # Initialize an empty list to store follow-up questions
+    # Initialize an empty list to collect relevant follow-up questions
     follow_up_questions = [] 
 
     # Iterate through the retrieved documents to extract follow-up questions

@@ -10,8 +10,8 @@ from langgraph.prebuilt import ToolNode
 from langgraph.graph.message import add_messages
 
 # Import predefined tool
-from tools import tools
-from data_loader import llm
+from app.tools import tools
+from app.data_loader import llm
 
 # Bind the tools to the LLM to allow it call the appropriate tool during conversation
 llm = llm.bind_tools(tools)

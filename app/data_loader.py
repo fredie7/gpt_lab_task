@@ -59,7 +59,7 @@ def load_documents():
     dataset['conditions'] = dataset['conditions'].apply(lambda x: [c.strip().lower() for c in x.split(',')])
     dataset['follow_up_questions'] = dataset['follow_up_questions'].apply(lambda x: [q.strip().lower() for q in x.split(';')])
 
-    # Convert each row into a LangChain Document with metadata
+    # Convert each row into a LangChain Document with metadata.
     docs = [
         Document(
             page_content=f"symptom: {row['symptom']}\nconditions: {', '.join(row['conditions'])}\nfollow_up: {'; '.join(row['follow_up_questions'])}",

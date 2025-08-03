@@ -6,8 +6,7 @@ import asyncio
 from fastapi import FastAPI
 # To allow for communication between the client side and the server
 from fastapi.middleware.cors import CORSMiddleware
-# To define data model with validation
-from pydantic import BaseModel
+
 # To acknowledge human message in the conversation
 from langchain_core.messages import HumanMessage
 # Import the custom agent logic and session store

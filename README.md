@@ -97,7 +97,6 @@ The Fig 4 above shows the user interface of the application, while Fig 5 to Fig 
 
 <p>
   Fiddle with the application via the following link: 
- <!-- <a href="https://medical-agentic-ai-client.vercel.app/" target="_blank" rel="noopener noreferrer"> -->
   <a href="https://symptocare-medical-agent.vercel.app/" target="_blank" rel="noopener noreferrer">
     https://medical-agentic-ai-client-ofws69j68-matthews-projects-f7e07378.vercel.app/
   </a>

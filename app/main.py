@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define the server's schema
+# Define the server's schema.
 class SymptomInput(BaseModel):
     message: str
     history: list[dict] = []

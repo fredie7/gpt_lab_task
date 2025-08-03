@@ -10,7 +10,7 @@ from data_loader import llm
 # Bind the tools to the LLM
 llm = llm.bind_tools(tools)
 
-# Define the state that manages information between users and all agents
+# Define the state that manages information between users and all agents.
 class MedicalAgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
 

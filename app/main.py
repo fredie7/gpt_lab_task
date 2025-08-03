@@ -11,8 +11,8 @@ from pydantic import BaseModel
 # To acknowledge human message in the conversation
 from langchain_core.messages import HumanMessage
 # Import the custom agent logic and session store
-from app.agents import run_agent_loop, conversation_store
-from app.models import SymptomInput
+from agents import run_agent_loop, conversation_store
+from models import SymptomInput
 
 
 # Initialize FastAPI

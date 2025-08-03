@@ -65,7 +65,7 @@ graph.add_node("medical_agent", medical_agent)
 graph.add_node("tools", ToolNode(tools=tools))
 # Set entry point here the conversation starts
 graph.set_entry_point("medical_agent")
-# Define conditional transitions from "medical_agent"
+# Define conditional transitions from "medical_agent."
 graph.add_conditional_edges("medical_agent", should_continue, {
     "continue": "tools",
     "end": END

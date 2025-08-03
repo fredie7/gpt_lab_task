@@ -33,7 +33,7 @@ app.add_middleware(
 # Define the endpoint to handle user requests
 @app.post("/ask")
 
-# Handle the request body containing the user's message, history, and session_id
+# Handle the request body containing the user's message, history, and session_id.
 async def ask(input_data: SymptomInput):
 
     # Clean up the user's message

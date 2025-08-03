@@ -29,8 +29,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define the endpoint to handle user requests
-@app.post("/ask")
+# Define the first version of the endpoint to handle user requests
+@app.post("/api/v1/ask")
 
 # Handle the request body containing the user's message, history, and session_id.
 async def ask(input_data: SymptomInput):

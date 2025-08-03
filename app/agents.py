@@ -2,6 +2,8 @@
 from typing import Sequence, Annotated, Dict
 # To allow for the definiition of dict with typed fields
 from typing_extensions import TypedDict
+# To display the graph workflow
+from IPython.display import display, Image
 
 # Import message and agent graph components from LangChain and LangGraph
 from langchain_core.messages import BaseMessage, SystemMessage
@@ -75,6 +77,9 @@ graph.add_edge("tools", "medical_agent")
 
 # Compile the graph into an agent
 agent_app = graph.compile()
+
+#Display the workflow
+# display(Image(agent_app.get_graph().draw_mermaid_png()))
 
 # Create conversation store of session_id from each user
 conversation_store: Dict[str, list[BaseMessage]] = {}

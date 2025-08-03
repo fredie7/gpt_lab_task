@@ -36,8 +36,11 @@ def load_documents():
 
     print("Loading and cleaning dataset...")
 
+    # Build absolute path to CSV relative to this file
+    csv_path = os.path.join(os.path.dirname(__file__), "symptoms_data.csv")
+
     # Read the dataset
-    dataset = pd.read_csv("symptoms_data.csv")
+    dataset = pd.read_csv(csv_path)
 
     # Enlist the column names
     dataset_columns = ['symptom', 'conditions', 'follow_up_questions']

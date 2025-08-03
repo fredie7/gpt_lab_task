@@ -14,7 +14,7 @@ def provide_diagnosis(symptom: str) -> str:
     # Retrieve top 3 similar documents related to the symptom from the vector database
     docs = vectorstore.similarity_search(symptom, k=3)  
 
-    # Initialize an empty list to collect relevant follow-up questions
+    # Initialize an empty list to collect relevant follow-up questions.
     follow_up_questions = [] 
 
     # Iterate through the retrieved documents to extract follow-up questions

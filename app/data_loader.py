@@ -98,8 +98,8 @@ documents_split = text_splitter.split_documents( documents)
 vectorstore = FAISS.from_documents(documents_split, embeddings)
 
 # Initialize the LLM and set the temperature in a way to make the model more deterministic and prevent hallucination
-llm = ChatOpenAI(model="gpt-4.1", openai_api_key=OPENAI_API_KEY,temperature=0.0)
+llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY,temperature=0.0)
 
 # Create a retrieval chain to handle the retrieval of relevant documents and generate responses based on user input.
 chain = RetrievalQA.from_chain_type(llm=llm, chain_type="map_reduce", retriever=vectorstore.as_retriever())
-print("CHAIN===>>", chain.invoke("fatigue"))
+# print("CHAIN===>>", chain.invoke("fatigue"))

@@ -19,10 +19,10 @@ def provide_diagnosis(symptom: str) -> str:
 
     # Iterate through the retrieved documents to extract follow-up questions
     for doc in docs:  
-        # Get only follow-up questions from the raft of metadata, or nothing if it does not exist
+        # Get only follow-up questions from the raft of metadata, or nothing if none exists
         questions = doc.metadata.get("follow_up_questions", [])  
         if questions:
-            # Add retrieved questions to the list
+            # Add retrieved questions to the existing list of questions
             follow_up_questions.extend(questions)  
 
     if follow_up_questions:

@@ -30,13 +30,13 @@ print("OPENAI_API_KEY found.")
 # Load and preprocess dataset
 def load_documents():
 
-    # Use caching so the function only loads once
+    # To ensure caching so the function only loads once
     if hasattr(load_documents, "cached"):
         return load_documents.cached
 
     print("Loading and cleaning dataset...")
 
-    # Build absolute path to CSV relative to this file
+    # Build absolute path to the CSV file
     csv_path = os.path.join(os.path.dirname(__file__), "symptoms_data.csv")
 
     # Read the dataset
@@ -56,13 +56,13 @@ def load_documents():
 
     # Remove white spaces and revert to lowercases
     dataset['symptom'] = dataset['symptom'].str.strip().str.lower()
-    dataset['conditions'] = dataset['conditions'].apply(lambda x: [c.strip().lower() for c in x.split(',')])
-    dataset['follow_up_questions'] = dataset['follow_up_questions'].apply(lambda x: [q.strip().lower() for q in x.split(';')])
+    dataset['conditions'] = dataset['conditions'].apply(lambda x: [condition.strip().lower() for condition in x.split(',')])
+    dataset['follow_up_questions'] = dataset['follow_up_questions'].apply(lambda x: [question.strip().lower() for question in x.split(';')])
 
     # Convert each row into a LangChain Document with metadata.
     docs = [
         Document(
-            page_content=f"symptom: {row['symptom']}\nconditions: {', '.join(row['conditions'])}\nfollow_up: {'; '.join(row['follow_up_questions'])}",
+            page_content=f"symptom: {row['symptom']}\nconditions: {', '.join(row['conditions'])}\nfollow_up_questions: {'; '.join(row['follow_up_questions'])}",
             metadata={
                 "symptom": row['symptom'],
                 "conditions": row['conditions'],

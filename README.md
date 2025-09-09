@@ -52,11 +52,11 @@ As illustrated in the workflow from (Fig 1), the medical agent serves as the sta
   </tr>
 </table>
 
-The agentic AI workflow follows a continuous loop of reasoning and action between the medical agent and its three co-workers. As shown in Fig. 2 and Fig. 3, the diagnostic agent is labeled as provide_diagnosis, the recommender agent as provide_recommendation, and the explanation agent as provide_explanation.
+The Agentic AI workflow follows a continuous loop of reasoning and action between the medical agent and its three co-workers. As shown in Fig. 2 and Fig. 3, the diagnostic agent is labeled as provide_diagnosis, the recommender agent as provide_recommendation, and the explanation agent as provide_explanation.
 
 In Fig. 2, the first arrow indicates the initial step, where the medical agent requests feedback from all three sub-agents after receiving a user's message. The second arrow points to the activation of the provide_diagnosis tool, followed by the third and fourth arrows, which point to the provide_recommendation and provide_explanation tools, respectively.
 
-These tools are triggered in response to the flow of conversation—depending on whether the user seeks a diagnosis for a health concern, a medical recommendation or advice, or an explanation for a previously provided recommendation.
+These tools are triggered in response to the flow of conversation, depending on whether the user seeks a diagnosis for a health concern, a medical recommendation or advice, or an explanation for a previously provided recommendation.
 
 The first arrow in Fig. 3 shows how the user’s message is initially collected and passed as an argument to the diagnostic agent. The steps that follow the second arrow involve continuous interactions between the diagnostic agent and the user, during which the agent gathers all necessary information. Once this process is complete, the second arrow indicates the point at which the recommender agent is activated. The third arrow then shows how the recommender agent relays its report to the explanation agent, along with contextual user data to support the explanation process.
 
@@ -100,7 +100,7 @@ The Fig 4 above shows the user interface of the application, while Fig 5 to Fig 
   <a href="https://symptocare-medical-agent.vercel.app/" target="_blank" rel="noopener noreferrer">
     https://symptocare-medical-agent.vercel.app/
   </a>
-  <p>But, please note that it has been hosted on the free tier plan of Render for automated CI/CD, and it may take a while to respond to your first message. This is because Render hibernates after 15 minutes         of no API calls. It ultimately becomes a fluid conversational exchange after that.
+  <p>But, please note that it has been hosted on the free tier plan of Render for automated CI/CD, and it may take a while to respond to your first message. This is because Render hibernates after 15 minutes of no API calls. It ultimately becomes a fluid conversational exchange after that.
   </p>
 </p>
 
